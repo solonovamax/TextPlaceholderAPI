@@ -40,9 +40,14 @@ jobs:
             
             -   name: Setup Gradle # Use gradle/gradle-build-action@v2 for more efficient caching
                 uses: gradle/gradle-build-action@v2
-            
-            -   name: Execute Gradle Build
-                run:  ./gradlew build
+                with:
+                    arguments:                  build # run ./gradlew build
+                    gradle-home-cache-includes: |
+                                                caches
+                                                loom-cache
+                                                wrapper
+                    cache-read-only:            false # Write the cache on all branches
+                    gradle-home-cache-cleanup:  true # Cleanup gradle home cache (delete files not accessed during the build)
             
             -   name: Capture Build Artifacts
                 uses: actions/upload-artifact@v2

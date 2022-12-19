@@ -31,6 +31,8 @@ jobs:
                                                 caches
                                                 loom-cache
                                                 wrapper
+                    cache-read-only:            false # Write the cache on all branches
+                    gradle-home-cache-cleanup:  true # Cleanup gradle home cache (delete files not accessed during the build)
                 env:
                     MAVEN_URL:      ${{ secrets.MAVEN_URL }}
                     MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
