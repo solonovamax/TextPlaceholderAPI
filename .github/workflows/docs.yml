@@ -7,19 +7,19 @@ jobs:
     build:
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v2
+            -   uses: actions/checkout@v3
                 with:
                     fetch-depth: 0
             
             -   uses: actions/setup-python@v2
                 with:
                     python-version: 3.x
-
+    
             -   uses: actions/cache@v2
                 with:
                     key:  ${{ github.ref }}
                     path: .cache
-
+    
             -   run: pip install mkdocs-material mkdocs-minify-plugin pillow cairosvg
             -   run: mkdocs gh-deploy --force
         env:
