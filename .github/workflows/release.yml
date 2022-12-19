@@ -1,49 +1,53 @@
 name: Release
 
 on:
-  release:
-    types:
-      - published
-  workflow_dispatch:
+    release:
+        types:
+            - published
+    workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/loom-cache
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-
-      - uses: actions/checkout@v2
-      - name: Set up JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: 17
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build and publish with Gradle
-        run: ./gradlew build publish
-        env:
-          MAVEN_URL: ${{ secrets.MAVEN_URL }}
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-
-      - name: Upload GitHub release
-        uses: AButler/upload-release-assets@v2.0
-        with:
-          files: 'build/libs/*.jar;!build/libs/*-sources.jar;!build/libs/*-dev.jar'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-      - run: pip install mkdocs-material
-      - run: mkdocs gh-deploy --force
+    build:
+        runs-on: ubuntu-latest
+        
+        steps:
+            -   name: Checkout Repository
+                uses: actions/checkout@v2
+            
+            -   name: Validate Gradle Wrapper
+                uses: gradle/wrapper-validation-action@v1
+            
+            -   name: Set up JDK 17
+                uses: actions/setup-java@v3
+                with:
+                    java-version: 17
+            
+            -   name: Setup Gradle # Use gradle/gradle-build-action@v2 for more efficient caching
+                uses: gradle/gradle-build-action@v2
+                with:
+                    arguments:                  build publish # run ./gradlew build publish
+                    gradle-home-cache-includes: |
+                                                caches
+                                                loom-cache
+                                                wrapper
+                env:
+                    MAVEN_URL:      ${{ secrets.MAVEN_URL }}
+                    MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+                    MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+            
+            -   name: Upload GitHub Release
+                uses: AButler/upload-release-assets@v2.0
+                with:
+                    files:      'build/libs/*.jar;!build/libs/*-sources.jar;!build/libs/*-dev.jar'
+                    repo-token: ${{ secrets.GITHUB_TOKEN }}
+            
+            -   uses: actions/setup-python@v2
+                with:
+                    python-version: 3.x
+            
+            -   run: pip install mkdocs-material mkdocs-minify-plugin pillow cairosvg
+            
+            -   run: mkdocs gh-deploy --force
+                env:
+                    SOCIAL_CARDS: true # Enable social cards building
+                    SITE_URL:     https://placeholders.pb4.eu # Set the site url for mkdocs
