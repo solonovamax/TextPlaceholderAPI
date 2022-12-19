@@ -21,6 +21,7 @@ jobs:
                 uses: actions/setup-java@v3
                 with:
                     java-version: 17
+                    distribution: temurin
             
             -   name: Setup Gradle # Use gradle/gradle-build-action@v2 for more efficient caching
                 uses: gradle/gradle-build-action@v2
