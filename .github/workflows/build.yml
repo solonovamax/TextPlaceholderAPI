@@ -50,7 +50,7 @@ jobs:
                     gradle-home-cache-cleanup:  true # Cleanup gradle home cache (delete files not accessed during the build)
             
             -   name: Capture Build Artifacts
-                uses: actions/upload-artifact@v2
+                uses: actions/upload-artifact@v3
                 with:
-                    name: Artifacts
+                    name: Artifacts-${{ matrix.java }}-${{ matrix.os }}
                     path: build/libs/
