@@ -1,25 +1,47 @@
 package eu.pb4.placeholders.impl.textparser;
 
-import com.google.common.util.concurrent.AtomicDouble;
-import eu.pb4.placeholders.api.node.*;
+
+import eu.pb4.placeholders.api.node.DirectTextNode;
+import eu.pb4.placeholders.api.node.KeybindNode;
+import eu.pb4.placeholders.api.node.LiteralNode;
+import eu.pb4.placeholders.api.node.ScoreNode;
+import eu.pb4.placeholders.api.node.TextNode;
+import eu.pb4.placeholders.api.node.TranslatedNode;
+import eu.pb4.placeholders.api.node.parent.ClickActionNode;
+import eu.pb4.placeholders.api.node.parent.ColorNode;
+import eu.pb4.placeholders.api.node.parent.FontNode;
+import eu.pb4.placeholders.api.node.parent.FormattingNode;
+import eu.pb4.placeholders.api.node.parent.GradientNode;
+import eu.pb4.placeholders.api.node.parent.HoverNode;
+import eu.pb4.placeholders.api.node.parent.InsertNode;
+import eu.pb4.placeholders.api.node.parent.ParentNode;
 import eu.pb4.placeholders.api.parsers.TextParserV1;
-import eu.pb4.placeholders.api.node.parent.*;
 import eu.pb4.placeholders.impl.GeneralUtils;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
-import net.minecraft.text.Text;
+import net.minecraft.text.Text.Serializer;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
-import static eu.pb4.placeholders.impl.textparser.TextParserImpl.*;
+import static eu.pb4.placeholders.impl.textparser.TextParserImpl.cleanArgument;
+import static eu.pb4.placeholders.impl.textparser.TextParserImpl.parse;
+import static eu.pb4.placeholders.impl.textparser.TextParserImpl.recursiveParsing;
+import static eu.pb4.placeholders.impl.textparser.TextParserImpl.removeEscaping;
+import static eu.pb4.placeholders.impl.textparser.TextParserImpl.restoreOriginalEscaping;
 
 @ApiStatus.Internal
 public final class TextTags {
@@ -468,7 +490,7 @@ public final class TextTags {
                             "raw_style",
                             "special",
                             false,
-                            (tag, data, input, handlers, endAt) -> new TextParserV1.TagNodeValue(new DirectTextNode(Text.Serializer.fromLenientJson(restoreOriginalEscaping(cleanArgument(data)))), 0)
+                            (tag, data, input, handlers, endAt) -> new TextParserV1.TagNodeValue(new DirectTextNode(Objects.requireNonNull(Serializer.fromLenientJson(restoreOriginalEscaping(cleanArgument(data))))), 0)
                     )
             );
         }

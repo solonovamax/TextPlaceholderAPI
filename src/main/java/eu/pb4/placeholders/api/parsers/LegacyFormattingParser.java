@@ -1,5 +1,6 @@
 package eu.pb4.placeholders.api.parsers;
 
+
 import com.mojang.brigadier.StringReader;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
@@ -10,16 +11,28 @@ import eu.pb4.placeholders.api.node.parent.ParentTextNode;
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+
+@ParametersAreNonnullByDefault
 public class LegacyFormattingParser implements NodeParser {
-    public static NodeParser COLORS = new LegacyFormattingParser(true, Arrays.stream(Formatting.values()).filter(x -> !x.isColor()).toArray(x -> new Formatting[x]));
-    public static NodeParser BASE_COLORS = new LegacyFormattingParser(false, Arrays.stream(Formatting.values()).filter(x -> !x.isColor()).toArray(x -> new Formatting[x]));
-    public static NodeParser ALL = new LegacyFormattingParser(true, Formatting.values());
+    public static final NodeParser COLORS = new LegacyFormattingParser(true, Arrays.stream(Formatting.values())
+                                                                                   .filter(x -> !x.isColor())
+                                                                                   .toArray(x -> new Formatting[x]));
+
+    public static final NodeParser BASE_COLORS = new LegacyFormattingParser(false, Arrays.stream(Formatting.values())
+                                                                                         .filter(x -> !x.isColor())
+                                                                                         .toArray(x -> new Formatting[x]));
+
+    public static final NodeParser ALL = new LegacyFormattingParser(true, Formatting.values());
+
     private final Char2ObjectOpenHashMap<Formatting> map = new Char2ObjectOpenHashMap<>();
+
     private final boolean allowRgb;
 
     public LegacyFormattingParser(boolean allowRgb, Formatting... allowedFormatting) {
@@ -29,11 +42,7 @@ public class LegacyFormattingParser implements NodeParser {
         }
     }
 
-    @Override
-    public TextNode[] parseNodes(TextNode input) {
-        return parseNodes(input, new ArrayList<>());
-    }
-
+    @NotNull
     public TextNode[] parseNodes(TextNode input, List<TextNode> nextNodes) {
         if (input instanceof LiteralNode literalNode) {
             return parseLiteral(literalNode, nextNodes);
@@ -46,12 +55,18 @@ public class LegacyFormattingParser implements NodeParser {
                     list.add(arg);
                 }
             }
-            return new TextNode[] { new TranslatedNode(translatedNode.key(), list.toArray()) };
+            return new TextNode[]{ new TranslatedNode(translatedNode.key(), list.toArray()) };
         } else if (input instanceof ParentTextNode parentTextNode) {
             return parseParents(parentTextNode);
         } else {
-            return new TextNode[] { input };
+            return new TextNode[]{ input };
         }
+    }
+
+    @NotNull
+    @Override
+    public TextNode[] parseNodes(TextNode input) {
+        return parseNodes(input, new ArrayList<>());
     }
 
     private TextNode[] parseParents(ParentTextNode parentTextNode) {
@@ -64,7 +79,7 @@ public class LegacyFormattingParser implements NodeParser {
             }
         }
 
-        return new TextNode[] { parentTextNode.copyWith(list.toArray(new TextNode[0]), this) };
+        return new TextNode[]{ parentTextNode.copyWith(list.toArray(new TextNode[0]), this) };
     }
 
     private TextNode[] parseLiteral(LiteralNode literalNode, List<TextNode> nexts) {
@@ -101,7 +116,7 @@ public class LegacyFormattingParser implements NodeParser {
                         var base = TextNode.asSingle(parseLiteral(new LiteralNode(reader.getRemaining()), list));
                         list.add(0, base);
 
-                        return new TextNode[] {
+                        return new TextNode[]{
                                 new LiteralNode(builder.toString()),
                                 new ColorNode(list.toArray(new TextNode[0]), TextColor.fromRgb(rgb))
                         };
@@ -123,7 +138,7 @@ public class LegacyFormattingParser implements NodeParser {
 
                     list.add(0, base);
 
-                    return new TextNode[] {
+                    return new TextNode[]{
                             new LiteralNode(builder.toString()),
                             new FormattingNode(list.toArray(new TextNode[0]), x)
                     };
@@ -134,6 +149,6 @@ public class LegacyFormattingParser implements NodeParser {
             builder.append(i);
         }
 
-        return new TextNode[] { literalNode };
+        return new TextNode[]{ literalNode };
     }
 }

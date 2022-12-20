@@ -1,5 +1,6 @@
 package eu.pb4.placeholders.api.parsers;
 
+
 import com.mojang.brigadier.StringReader;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
@@ -12,18 +13,26 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.ListIterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+
+@ParametersAreNonnullByDefault
 public final class MarkdownLiteParserV1 implements NodeParser {
     public static NodeParser ALL = new MarkdownLiteParserV1(MarkdownFormat.values());
+
     private final EnumSet<MarkdownFormat> allowedFormatting = EnumSet.noneOf(MarkdownFormat.class);
+
     private final Function<TextNode[], TextNode> spoilerFormatting;
+
     private final Function<TextNode[], TextNode> backtickFormatting;
 
     public MarkdownLiteParserV1(MarkdownFormat... formatting) {
@@ -34,25 +43,28 @@ public final class MarkdownLiteParserV1 implements NodeParser {
             Function<TextNode[], TextNode> spoilerFormatting,
             Function<TextNode[], TextNode> quoteFormatting,
             MarkdownFormat... formatting
-    ) {
-        for (var form : formatting) {
-            this.allowedFormatting.add(form);
-        }
+                               ) {
+        Collections.addAll(this.allowedFormatting, formatting);
         this.spoilerFormatting = spoilerFormatting;
         this.backtickFormatting = quoteFormatting;
     }
 
+    @NotNull
     public static TextNode defaultSpoilerFormatting(TextNode[] textNodes) {
-        return new StyledNode(new TextNode[]{TextNode.of("["), new TranslatedNode("options.hidden"), TextNode.of("]")},
-                Style.EMPTY.withColor(Formatting.GRAY).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.empty())).withItalic(true),
-                new ParentNode(textNodes), null, null);
+        return new StyledNode(new TextNode[]{ TextNode.of("["), new TranslatedNode("options.hidden"), TextNode.of("]") },
+                              Style.EMPTY.withColor(Formatting.GRAY)
+                                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.empty()))
+                                         .withItalic(true),
+                              new ParentNode(textNodes), null, null);
 
     }
 
+    @NotNull
     public static TextNode defaultQuoteFormatting(TextNode[] textNodes) {
         return new StyledNode(textNodes, Style.EMPTY.withColor(Formatting.GRAY).withItalic(true), null, null, null);
     }
 
+    @NotNull
     @Override
     public TextNode[] parseNodes(TextNode input) {
         if (input instanceof LiteralNode literalNode) {
@@ -68,7 +80,7 @@ public final class MarkdownLiteParserV1 implements NodeParser {
                     list.add(arg);
                 }
             }
-            return new TextNode[]{new TranslatedNode(translatedNode.key(), list.toArray())};
+            return new TextNode[]{ new TranslatedNode(translatedNode.key(), list.toArray()) };
         } else if (input instanceof ParentTextNode parentTextNode) {
             var list = new ArrayList<SubNode<?>>();
             for (var children : parentTextNode.getChildren()) {
@@ -78,9 +90,9 @@ public final class MarkdownLiteParserV1 implements NodeParser {
                     list.add(new SubNode<>(SubNodeType.TEXT_NODE, TextNode.asSingle(parseNodes(children))));
                 }
             }
-            return new TextNode[]{parentTextNode.copyWith(parseSubNodes(list.listIterator(), null, -1), this)};
+            return new TextNode[]{ parentTextNode.copyWith(parseSubNodes(list.listIterator(), null, -1), this) };
         } else {
-            return new TextNode[]{input};
+            return new TextNode[]{ input };
         }
     }
 
@@ -93,7 +105,7 @@ public final class MarkdownLiteParserV1 implements NodeParser {
             if (i == '\\' && reader.canRead()) {
                 var next = reader.read();
                 if (next != '~' && next != '`' && next != '_' && next != '*' && next != '|') {
-                    builder.append(i);
+                    builder.append('\\');
                 }
                 builder.append(next);
                 continue;
@@ -226,7 +238,7 @@ public final class MarkdownLiteParserV1 implements NodeParser {
                 boolean two = false;
                 if (nodes.hasNext()) {
                     if ((next.type == SubNodeType.STAR && this.allowedFormatting.contains(MarkdownFormat.BOLD))
-                            || (next.type == SubNodeType.FLOOR && this.allowedFormatting.contains(MarkdownFormat.UNDERLINE))
+                        || (next.type == SubNodeType.FLOOR && this.allowedFormatting.contains(MarkdownFormat.UNDERLINE))
                     ) {
                         var nexter = nodes.next();
                         if (nexter.type == next.type) {
@@ -287,16 +299,23 @@ public final class MarkdownLiteParserV1 implements NodeParser {
         SPOILER
     }
 
+
     private record SubNodeType<T>(T selfValue) {
         public static final SubNodeType<TextNode> TEXT_NODE = new SubNodeType<>(null);
+
         public static final SubNodeType<String> STRING = new SubNodeType<>(null);
 
         public static final SubNodeType<String> STAR = new SubNodeType<>("*");
+
         public static final SubNodeType<String> FLOOR = new SubNodeType<>("_");
+
         public static final SubNodeType<String> DOUBLE_WAVY_LINE = new SubNodeType<>("~~");
+
         public static final SubNodeType<String> BACK_TICK = new SubNodeType<>("`");
+
         public static final SubNodeType<String> SPOILER_LINE = new SubNodeType<>("||");
     }
+
 
     private record SubNode<T>(SubNodeType<T> type, T value) {
     }
